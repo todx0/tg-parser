@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Usage Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background: white;
+        }
+        .chart-container {
+            width: 1400px;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="wordChart" width="1400" height="600"></canvas>
+    </div>
+
+    <script>
+        const formattedResult = {{data}};
+        const timestamps = formattedResult.map(entry => entry.timestamp);
+        
+        const wordCounts = {};
+        formattedResult.forEach(entry => {
+            Object.entries(entry.words).forEach(([word, count]) => {
+                wordCounts[word] = (wordCounts[word] || 0) + count;
+            });
+        });
+        
+        const topWords = Object.entries(wordCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(entry => entry[0]);
+
+        const datasets = topWords.map(word => ({
+            label: word,
+            data: formattedResult.map(entry => entry.words[word] || 0),
+            backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+            borderWidth: 0
+        }));
+
+        const ctx = document.getElementById('wordChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: timestamps,
+                datasets: datasets
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: { size: 12 }
+                        }
+                    },
+                    datalabels: { display: false }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            padding: 2
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: { display: false },
+                        ticks: {
+                            padding: 10
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 20,
+                        right: 20,
+                        top: 40,
+                        bottom: 40
+                    }
+                },
+                animation: false
+            }
+        });
+    </script>
+</body>
+</html>
