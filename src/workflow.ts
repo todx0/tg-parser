@@ -1,5 +1,5 @@
 import type { Api } from 'telegram';
-import type { TrendArray, CommandHandlers, DatabaseObject, ParsedCommand } from 'src/types';
+import type { TrendArray, CommandHandlers, DatabaseObject, ParsedCommand, DailyWords, GroupName } from 'src/types';
 import { filteredSet } from 'src/utils/filters';
 import {
 	getMessageTextFromEvent,
@@ -9,8 +9,9 @@ import {
 	generateTrendsImage,
 	getMapFromWords,
 	generateChartImage,
-	formatTimestamp,
 	filterTrends,
+	convertMessagesToDailyWords,
+	getTimestampMinusNDays,
 } from 'src/utils/utils';
 import { trendManager, telegramParser, databaseService } from 'src/config';
 import { unlink } from 'node:fs/promises';
@@ -64,7 +65,7 @@ const commandHandlers: CommandHandlers = {
 		return null;
 	},
 
-	scan_days: async (params: string[], chatId: string) => {
+	scan_days: async (params: string[], _: string) => {
 		const [parsedChatId, days] = params;
 
 		if (!parsedChatId || !days) throw Error('Please provide valid chat id and specify amount of days.');
@@ -73,7 +74,8 @@ const commandHandlers: CommandHandlers = {
 
 		if (!groupName) throw Error('Group name not found.');
 
-		const offset = Math.floor(Date.now() / 1000) - Number.parseInt(days) * 24 * 60 * 60;
+		const offset = getTimestampMinusNDays(days);
+
 		const messages = await telegramParser.getMessages(parsedChatId, {
 			offsetDate: offset,
 			reverse: true,
@@ -81,41 +83,8 @@ const commandHandlers: CommandHandlers = {
 			waitTime: 5,
 		});
 
-		const dailyWords = messages
-			.map((message) => ({ date: formatTimestamp(message.date), words: parseMessageToWordsArray(message.message, filteredSet) }))
-			.filter((message) => message.words.length > 1)
-			.reduce(
-				(acc, item) => {
-					if (acc[item.date]) {
-						acc[item.date].words.push(...item.words);
-					} else {
-						acc[item.date] = { date: item.date, words: [...item.words] };
-					}
-					return acc;
-				},
-				{} as Record<string, { date: string; words: string[] }>,
-			);
-
-		const dailyWordsArr = Object.values(dailyWords);
-
-		const dailyWordsMapped = dailyWordsArr.map((o) => ({ date: o.date, words: Array.from(filterTrends(getMapFromWords(o.words))) }));
-
-		for (const object of dailyWordsMapped) {
-			for (const trend of object.words) {
-				const [word, count] = trend;
-				const dbObject: DatabaseObject = {
-					groupId: parsedChatId,
-					groupName: groupName,
-					timestamp: object.date,
-					word: word,
-					count: count,
-				};
-				databaseService.add(dbObject);
-			}
-		}
-
-		//const nonEmptyFilteredMessages = messages.flatMap((message) => parseMessageToWordsArray(message.message, filteredSet) as string[]);
-		//const trends = getMapFromWords(nonEmptyFilteredMessages);
+		const dailyWords = convertMessagesToDailyWords(messages);
+		databaseService.addDailyWordsToDB(parsedChatId, groupName, dailyWords);
 
 		return null;
 	},
@@ -173,14 +142,6 @@ export async function botWorkflow(event: Api.TypeUpdate): Promise<void> {
 	const words = parseMessageToWordsArray(message, filteredSet);
 	if (!words) return;
 	await trendManager.updateTrends(chatId, words);
-
-	/**
-	 * @TODO Work from any chat by parsing arguments
-	 * Parse command: get parsedChatId argument
-	 * Implement telegram.sendMessage
-	 * Send trendingWords from parsedChatId to chatId
-	 * Optional: send message as table
-	 */
 
 	/**
 	 * @TODO Parse comments from news groups (microblog)

@@ -2,31 +2,33 @@
 // Core Types
 // ======================
 
-type Word = string;
-
-type Count = number;
+export type Word = string;
+export type Count = number;
 
 /** Represents a word and its occurrence count */
-type WordCount = [word: Word, count: Count];
+//type WordCount = [word: string, count: count];
+export interface WordCount {
+	[word: string]: number;
+}
 
 /** Represents a timestamp in string format */
-type Timestamp = string;
+export type Timestamp = string;
 
 /** Represents a group ID (unique identifier for a group) */
-type GroupId = string;
+export type GroupId = string;
 
 /** Represents a group name (human-readable name for a group) */
-type GroupName = string;
+export type GroupName = string;
 
 // ======================
 // Trends Module
 // ======================
 
-type Trend = Map<Word, Count>;
-type GroupTrends = Map<GroupId, Trend>;
-type TrendArray = [Word, Count];
+export type Trend = Map<Word, Count>;
+export type GroupTrends = Map<GroupId, Trend>;
+export type TrendArray = [Word, Count];
 
-interface SerializedTrends {
+export interface SerializedTrends {
 	[groupId: GroupId]: {
 		[word: Word]: Count;
 	};
@@ -36,26 +38,26 @@ interface SerializedTrends {
 // Telegram Parser Module
 // ======================
 
-interface TelegramParserT extends TelegramClient {
+export interface TelegramParserT extends TelegramClient {
 	sendMessageTo(groupId: GroupId, message: string): Promise<void>;
 	getGroupName(chatId: Api.TypeEntityLike): Promise<string | null>;
 	getUserChats(): Promise<GroupMap>;
 }
 
-type GroupMap = Record<GroupName, GroupId>;
+export type GroupMap = Record<GroupName, GroupId>;
 
 // ======================
 // Workflow Module
 // ======================
 
-interface ParsedCommand {
+export interface ParsedCommand {
 	command: string;
 	params: string[];
 }
 
-type CommandHandler = (params: string[], chatId: GroupId) => Promise<null>;
+export type CommandHandler = (params: string[], chatId: GroupId) => Promise<null>;
 
-interface CommandHandlers {
+export interface CommandHandlers {
 	[key: string]: CommandHandler;
 }
 
@@ -63,13 +65,13 @@ interface CommandHandlers {
 // Filters Module
 // ======================
 
-type FilteredSet = Set<Word>;
+export type FilteredSet = Set<Word>;
 
 // ======================
 // Database Module
 // ======================
 
-interface DatabaseObject {
+export interface DatabaseObject {
 	groupId: GroupId;
 	groupName: GroupName;
 	timestamp: Timestamp;
@@ -77,48 +79,21 @@ interface DatabaseObject {
 	count: Count;
 }
 
-type WordMap = Record<Word, Count>;
+export type DailyWords = {
+	date: string;
+	words: [string, number][];
+}[];
+
+export type WordMap = Record<Word, Count>;
+
 //type TrendRow = Record<Timestamp, WordMap>;
-type TrendRow = {
+export type TrendRow = {
 	timestamp: Timestamp;
 	word: Word;
 	count: Count;
 };
 //type FormattedRow = Record<Timestamp, WordMap>;
-interface FormattedRow {
-  timestamp: Timestamp;
-  words: WordMap;
+export interface FormattedRow {
+	timestamp: Timestamp;
+	words: WordMap;
 }
-
-// ======================
-// Export Everything
-// ======================
-
-export type {
-	// Core Types
-	Word,
-	Count,
-	WordCount,
-	Timestamp,
-	GroupId,
-	GroupName,
-	// Trends Module
-	Trend,
-	TrendArray,
-	GroupTrends,
-	SerializedTrends,
-	// Telegram Parser Module
-	TelegramParserT,
-	GroupMap,
-	// Workflow Module
-	ParsedCommand,
-	CommandHandler,
-	CommandHandlers,
-	// Filters Module
-	FilteredSet,
-	// Database Module
-	DatabaseObject,
-	WordMap,
-	TrendRow,
-	FormattedRow,
-};
