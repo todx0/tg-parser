@@ -77,108 +77,42 @@ export async function generateChartImage(formattedResult: FormattedRow[]) {
 		},
 	});
 
-	const filepath = 'chart.png';
+	const filepath = 'chart-table.png';
 	await writeFile(filepath, imageBuffer);
+
 	return filepath;
 }
 
-export function generateHtmlFromWords(trendsArr: TrendArray[], groupName: string): string {
-	return `
-	<html>
-			<head>
-					<style>
-							/* General body styling */
-							body {
-									font-family: 'Arial', sans-serif;
-									background-color: #f9f9f9;
-									margin: 0;
-									padding: 20px;
-							}
+export async function generateWordsHtml(trendsArr: TrendArray[], groupName: string): Promise<string> {
+	const htmlTemplate = await readFile('src/html/words-template.html', 'utf8');
 
-							/* Group Name Header */
-							.group-name-header {
-									font-size: 24px;
-									font-weight: bold;
-									color: #ffffff;
-									background: linear-gradient(135deg, #6a11cb, #2575fc);
-									padding: 15px;
-									text-align: center;
-									border-radius: 8px;
-									margin-bottom: 20px;
-									box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-							}
+	const rows = trendsArr
+		.map(
+			(row: TrendArray) => `
+				<tr>
+					<td>${row[0]}</td>
+					<td>${Math.floor(row[1])}</td>
+				</tr>
+			`,
+		)
+		.join('');
 
-							/* Table styling */
-							table {
-									width: 100%;
-									border-collapse: collapse;
-									background-color: #ffffff;
-									border-radius: 8px;
-									overflow: hidden;
-									box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-							}
+	const htmlContent = htmlTemplate.replace('{{groupName}}', groupName).replace('{{rows}}', rows);
 
-							/* Table header styling */
-							th {
-									background: linear-gradient(135deg, #6a11cb, #2575fc);
-									color: #ffffff;
-									font-weight: bold;
-									padding: 12px;
-									text-align: left;
-							}
+	return htmlContent;
+}
 
-							/* Table row styling */
-							td {
-									padding: 12px;
-									border-bottom: 1px solid #dddddd;
-							}
+export async function generateWordsImage(htmlContent: string): Promise<string> {
+	const imageBuffer = await nodeHtmlToImage({
+		html: htmlContent,
+		type: 'png',
+		transparent: false,
+	});
 
-							/* Alternate row coloring */
-							tr:nth-child(even) {
-									background-color: #f9f9f9;
-							}
+	const filepath = 'words-table.png';
+	await writeFile(filepath, imageBuffer);
 
-							/* Hover effect for rows */
-							tr:hover {
-									background-color: #f1f1f1;
-							}
-
-							/* Add some spacing and alignment */
-							td:first-child, th:first-child {
-									padding-left: 20px;
-							}
-
-							td:last-child, th:last-child {
-									padding-right: 20px;
-							}
-					</style>
-			</head>
-			<body>
-					<!-- Group Name Header -->
-					<div class="group-name-header">
-							${groupName}
-					</div>
-
-					<!-- Table -->
-					<table>
-							<tr>
-									<th>Word</th>
-									<th>Count</th>
-							</tr>
-							${trendsArr
-								.map(
-									(row: TrendArray) => `
-											<tr>
-													<td>${row[0]}</td>
-													<td>${Math.floor(row[1])}</td>
-											</tr>
-									`,
-								)
-								.join('')}
-					</table>
-			</body>
-	</html>
-`;
+	return filepath;
 }
 
 export function formatTimestamp(timestamp: number): string {
@@ -227,4 +161,12 @@ export function convertMessagesToDailyWords(messages: Api.Message[]): DailyWords
 
 export function getTimestampMinusNDays(days: string): number {
 	return Math.floor(Date.now() / 1000) - Number.parseInt(days) * 24 * 60 * 60;
+}
+
+export function getEnvVariable(key: string): string {
+	const value = Bun.env[key];
+	if (!value) {
+		throw new Error(`Environment variable ${key} is missing`);
+	}
+	return value;
 }

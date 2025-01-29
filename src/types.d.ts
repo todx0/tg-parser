@@ -71,6 +71,14 @@ export type FilteredSet = Set<Word>;
 // Database Module
 // ======================
 
+export interface IDBRepo {
+	insertGroup(groupId: GroupId, groupName: GroupName): void;
+	insertTimestamp(timestamp: Timestamp): void;
+	getTimestampId(timestamp: Timestamp): number;
+	insertWordTrend(groupId: GroupId, timestampId: number, word: Word, count: Count): void;
+	getWordTrendsByGroupId(groupId: GroupId): FormattedRow[];
+}
+
 export interface DatabaseObject {
 	groupId: GroupId;
 	groupName: GroupName;
@@ -96,4 +104,16 @@ export type TrendRow = {
 export interface FormattedRow {
 	timestamp: Timestamp;
 	words: WordMap;
+}
+
+// ======================
+// App / Config Module
+// ======================
+
+export interface AppConfig {
+	API_ID: string;
+	SESSION: string;
+	API_HASH: string;
+	DB_NAME: string;
+	REDIS: string;
 }

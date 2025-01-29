@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis';
-import type { Trends } from 'src/types';
+import type { GroupTrends, SerializedTrends, GroupId, Trend, Word, Count } from 'src/types';
 
 export class TrendManager {
 	private redis: Redis;
@@ -10,17 +10,17 @@ export class TrendManager {
 		this.redis = new Redis(redisUrl);
 	}
 
-	private serializeGroupTrends(trends: Trends.GroupTrends): string {
-		const obj: Trends.Serialized = {};
+	private serializeGroupTrends(trends: GroupTrends): string {
+		const obj: SerializedTrends = {};
 		for (const [groupId, trend] of trends) {
 			obj[groupId] = Object.fromEntries(trend);
 		}
 		return JSON.stringify(obj);
 	}
 
-	private deserializeGroupTrends(data: string): Trends.GroupTrends {
-		const obj = JSON.parse(data) as Trends.Serialized;
-		const trends = new Map<Trends.GroupId, Trends.Trend>();
+	private deserializeGroupTrends(data: string): GroupTrends {
+		const obj = JSON.parse(data) as SerializedTrends;
+		const trends = new Map<GroupId, Trend>();
 
 		for (const [groupId, trendObj] of Object.entries(obj)) {
 			trends.set(groupId, new Map(Object.entries(trendObj).map(([word, count]) => [word, Number(count)])));
@@ -28,10 +28,10 @@ export class TrendManager {
 		return trends;
 	}
 
-	async updateTrends(groupId: Trends.GroupId, words: Trends.Word[]): Promise<void> {
+	async updateTrends(groupId: GroupId, words: Word[]): Promise<void> {
 		const key = `${this.KEY_PREFIX}${groupId}`;
 
-		let groupTrends: Trends.Trend;
+		let groupTrends: Trend;
 		const existingData = await this.redis.get(key);
 
 		if (existingData) {
@@ -50,7 +50,7 @@ export class TrendManager {
 		await this.redis.set(key, this.serializeGroupTrends(updatedTrends));
 	}
 
-	async getTrends(groupId: Trends.GroupId): Promise<Trends.Trend | null> {
+	async getTrends(groupId: GroupId): Promise<Trend | null> {
 		const key = `${this.KEY_PREFIX}${groupId}`;
 		const data = await this.redis.get(key);
 
@@ -60,7 +60,7 @@ export class TrendManager {
 		return trends.get(groupId) || null;
 	}
 
-	async getTrendingWords(groupId: Trends.GroupId): Promise<string[] | null> {
+	async getTrendingWords(groupId: GroupId): Promise<string[] | null> {
 		const trends = await this.getTrends(groupId);
 
 		if (!trends) return null;
@@ -81,7 +81,7 @@ export class TrendManager {
 			const trends = this.deserializeGroupTrends(data);
 
 			for (const [groupId, trend] of trends) {
-				const decayedTrend = new Map<Trends.Word, Trends.Count>();
+				const decayedTrend = new Map<Word, Count>();
 
 				for (const [word, count] of trend) {
 					const decayedCount = Math.max(0.1, count * this.DECAY_FACTOR);
@@ -98,7 +98,7 @@ export class TrendManager {
 		}
 	}
 
-	filterTrends(trends: Trends.Trend): Trends.Trend {
+	filterTrends(trends: Trend): Trend {
 		return new Map([...trends].filter(([, value]) => value > 3).sort(([, valueA], [, valueB]) => valueB - valueA));
 	}
 

@@ -1,4 +1,4 @@
-# parser
+# Telegram Chat Trends Parser
 
 To install dependencies:
 
@@ -9,7 +9,8 @@ bun install
 To run:
 
 ```bash
-bun run main.ts
+redis-server
 ```
-
-This project was created using `bun init` in bun v1.1.43. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+```bash
+bun run start
+```

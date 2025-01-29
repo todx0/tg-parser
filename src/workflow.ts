@@ -5,8 +5,8 @@ import {
 	getMessageTextFromEvent,
 	getChatId,
 	parseMessageToWordsArray,
-	generateHtmlFromWords,
-	generateTrendsImage,
+	generateWordsImage,
+	generateWordsHtml,
 	getMapFromWords,
 	generateChartImage,
 	filterTrends,
@@ -37,42 +37,22 @@ const commandHandlers: CommandHandlers = {
 		const filteredTrends = filterTrends(trends);
 		const trendsArr: TrendArray[] = Array.from(filteredTrends).slice(0, 10);
 
-		/**
-		 * @TODO - make it separate function.
-		 * and probably dont use it in scan:
-		 * it should be ran automatically and write to db only then.
-		 * scan should be performed in memory and just spit output.
-		 */
-		const today = new Date().toISOString().split('T')[0];
-		for (const trend of trendsArr) {
-			const [word, count] = trend;
-			const dbObject: DatabaseObject = {
-				groupId: parsedChatId,
-				groupName: groupName,
-				timestamp: today,
-				word: word,
-				count: count,
-			};
-			databaseService.add(dbObject);
-		}
+		const htmlTable = await generateWordsHtml(trendsArr, groupName);
 
-		const htmlTable = generateHtmlFromWords(trendsArr, groupName);
-
-		const filepath = await generateTrendsImage(htmlTable);
+		const filepath = await generateWordsImage(htmlTable);
 		await telegramParser.sendFile(chatId, { file: filepath });
 		await unlink(filepath);
 
 		return null;
 	},
 
-	scan_days: async (params: string[], _: string) => {
+	scan_days: async (params: string[], chatId: string) => {
 		const [parsedChatId, days] = params;
 
 		if (!parsedChatId || !days) throw Error('Please provide valid chat id and specify amount of days.');
 
 		const groupName = await telegramParser.getGroupName(parsedChatId);
-
-		if (!groupName) throw Error('Group name not found.');
+		if (!groupName) return null;
 
 		const offset = getTimestampMinusNDays(days);
 
@@ -85,6 +65,8 @@ const commandHandlers: CommandHandlers = {
 
 		const dailyWords = convertMessagesToDailyWords(messages);
 		databaseService.addDailyWordsToDB(parsedChatId, groupName, dailyWords);
+
+		await telegramParser.sendMessage(chatId, { message: 'Finished. Run /graph {groupId} to see results.' });
 
 		return null;
 	},

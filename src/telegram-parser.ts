@@ -7,10 +7,16 @@ export class TelegramParser extends TelegramClient implements TelegramParserT {
 		await this.sendMessage(groupId, { message: message });
 	}
 
+	/**
+	 * @TODO - Add Group support.
+	 * Currently checks for title only for Channel (large groups)
+	 */
 	async getGroupName(chatId: Api.TypeEntityLike): Promise<string | null> {
 		const entity = await this.getEntity(chatId);
 		if (entity.className !== 'Channel') return null;
-		return entity.title;
+		const groupName = entity.title;
+		if (!groupName) throw Error('Group name not found in Channel entity.');
+		return groupName;
 	}
 
 	async getUserChats(): Promise<GroupMap> {

@@ -1,5 +1,5 @@
-import type { Filters } from 'src/types';
-export const filteredSet: Filters.FilteredSet = new Set([
+import type { FilteredSet } from 'src/types';
+export const filteredSet: FilteredSet = new Set([
 	'которые',
 	'который',
 	'написал',
