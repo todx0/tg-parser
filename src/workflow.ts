@@ -14,7 +14,7 @@ import {
 	getTimestampMinusNDays,
 	generateChartHtml,
 } from 'src/utils/utils';
-import { trendManager, telegramParser, databaseService } from 'src/config';
+import { telegramParser, databaseService } from 'src/config';
 import { unlink } from 'node:fs/promises';
 
 const commandHandlers: CommandHandlers = {
@@ -72,9 +72,6 @@ const commandHandlers: CommandHandlers = {
 		return null;
 	},
 
-	/**
-	 * @TODO - rename and edit html
-	 */
 	graph: async (params: string[], chatId: string) => {
 		const [parsedChatId] = params;
 		const wordTrendsFromDatabase = databaseService.getWordTrendsByGroupId(parsedChatId);
@@ -86,18 +83,6 @@ const commandHandlers: CommandHandlers = {
 		await telegramParser.sendFile(chatId, { file: filepath });
 		await unlink(filepath);
 
-		return null;
-	},
-
-	words: async (_: string[], chatId: string) => {
-		const trendingWords = await trendManager.getTrendingWords(chatId);
-		console.log({ chatId, trendingWords });
-		return null;
-	},
-
-	trends: async (_: string[], chatId: string) => {
-		const trends = await trendManager.getTrends(chatId);
-		console.log({ chatId, trends });
 		return null;
 	},
 };
@@ -130,7 +115,6 @@ export async function botWorkflow(event: Api.TypeUpdate): Promise<void> {
 
 	const words = parseMessageToWordsArray(message, filteredSet);
 	if (!words) return;
-	await trendManager.updateTrends(chatId, words);
 
 	/**
 	 * @TODO Parse comments from news groups (microblog)

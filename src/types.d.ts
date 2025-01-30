@@ -1,39 +1,22 @@
 import type { TelegramClient } from 'telegram';
+
 // ======================
 // Core Types
 // ======================
 
 export type Word = string;
 export type Count = number;
+export type Timestamp = string;
+export type GroupId = string;
+export type GroupName = string;
 
-/** Represents a word and its occurrence count */
-//type WordCount = [word: string, count: count];
 export interface WordCount {
 	[word: string]: number;
 }
 
-/** Represents a timestamp in string format */
-export type Timestamp = string;
-
-/** Represents a group ID (unique identifier for a group) */
-export type GroupId = string;
-
-/** Represents a group name (human-readable name for a group) */
-export type GroupName = string;
-
 // ======================
 // Trends Module
 // ======================
-
-export interface ITrendManager {
-	updateTrends(groupId: GroupId, words: Word[]): Promise<void>;
-	getTrends(groupId: GroupId): Promise<Trend | null>;
-	getTrendingWords(groupId: GroupId): Promise<string[] | null>;
-	applyDecay(): Promise<void>;
-	filterTrends(trends: Trend): Trend;
-	startDecayScheduler(): NodeJS.Timer;
-	close(): Promise<void>;
-}
 
 export type Trend = Map<Word, Count>;
 export type GroupTrends = Map<GroupId, Trend>;
@@ -109,14 +92,12 @@ export type DailyWords = {
 
 export type WordMap = Record<Word, Count>;
 
-//type TrendRow = Record<Timestamp, WordMap>;
 export type TrendRow = {
 	timestamp: Timestamp;
 	word: Word;
 	count: Count;
 };
 
-//type FormattedRow = Record<Timestamp, WordMap>;
 export interface FormattedRow {
 	timestamp: Timestamp;
 	words: WordMap;
