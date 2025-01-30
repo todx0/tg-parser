@@ -2,7 +2,7 @@
 
 const { TelegramClient } = require('telegram');
 const { StringSession } = require('telegram/sessions');
-import readline from 'readline';
+import readline from 'node:readline';
 
 const rl = readline.createInterface({
   input: process.stdin,

@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
-import type { GroupTrends, SerializedTrends, GroupId, Trend, Word, Count } from 'src/types';
+import type { GroupTrends, SerializedTrends, GroupId, Trend, Word, Count, ITrendManager } from 'src/types';
 
-export class TrendManager {
+export class TrendManager implements ITrendManager {
 	private redis: Redis;
 	private readonly DECAY_FACTOR = 0.95; // 5% decay per hour
 	private readonly KEY_PREFIX = 'trends:';

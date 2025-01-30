@@ -1,5 +1,5 @@
 import type { Api } from 'telegram';
-import type { FormattedRow, TrendArray, Word, Trend, DailyWords } from 'src/types';
+import type { FormattedRow, TrendArray, Word, Trend, DailyWords, GroupName } from 'src/types';
 import nodeHtmlToImage from 'node-html-to-image';
 import { writeFile, readFile } from 'node:fs/promises';
 import { filteredSet } from 'src/utils/filters';
@@ -45,23 +45,7 @@ export function sanitizeWords(words: string[]): string[] {
 	);
 }
 
-export async function generateTrendsImage(htmlTable: string) {
-	const imageBuffer = await nodeHtmlToImage({
-		html: htmlTable,
-		type: 'png',
-		transparent: false,
-	});
-
-	const filepath = 'table.png';
-	await writeFile(filepath, imageBuffer);
-	return filepath;
-}
-
-export async function generateChartImage(formattedResult: FormattedRow[]) {
-	const htmlTemplate = await readFile('src/html/chart-template.html', 'utf8');
-
-	const htmlContent = htmlTemplate.replace('{{data}}', JSON.stringify(formattedResult));
-
+export async function generateChartImage(htmlContent: string) {
 	const imageBuffer = await nodeHtmlToImage({
 		html: htmlContent,
 		type: 'png',
@@ -83,7 +67,15 @@ export async function generateChartImage(formattedResult: FormattedRow[]) {
 	return filepath;
 }
 
-export async function generateWordsHtml(trendsArr: TrendArray[], groupName: string): Promise<string> {
+export async function generateChartHtml(formattedResult: FormattedRow[], groupName: GroupName): Promise<string> {
+	const htmlTemplate = await readFile('src/html/chart-template.html', 'utf8');
+
+	const htmlContent = htmlTemplate.replace('{{data}}', JSON.stringify(formattedResult)).replace('{{groupName}}', groupName);
+
+	return htmlContent;
+}
+
+export async function generateWordsHtml(trendsArr: TrendArray[], groupName: GroupName): Promise<string> {
 	const htmlTemplate = await readFile('src/html/words-template.html', 'utf8');
 
 	const rows = trendsArr

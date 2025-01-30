@@ -1,25 +1,18 @@
 import { TelegramClient } from 'telegram';
 import { Api } from 'telegram';
-import type { TelegramParserT, GroupMap, GroupId } from 'src/types';
+import type { ITelegramParser, GroupMap } from 'src/types';
 
-export class TelegramParser extends TelegramClient implements TelegramParserT {
-	async sendMessageTo(groupId: GroupId, message: string): Promise<void> {
-		await this.sendMessage(groupId, { message: message });
-	}
-
-	/**
-	 * @TODO - Add Group support.
-	 * Currently checks for title only for Channel (large groups)
-	 */
-	async getGroupName(chatId: Api.TypeEntityLike): Promise<string | null> {
+export class TelegramParser extends TelegramClient implements ITelegramParser {
+	public async getGroupName(chatId: Api.TypeEntityLike): Promise<string | null> {
 		const entity = await this.getEntity(chatId);
-		if (entity.className !== 'Channel') return null;
-		const groupName = entity.title;
-		if (!groupName) throw Error('Group name not found in Channel entity.');
-		return groupName;
+		if (!entity) return null;
+		if (entity instanceof Api.Channel || entity instanceof Api.Chat) {
+			return entity.title;
+		}
+		return null;
 	}
 
-	async getUserChats(): Promise<GroupMap> {
+	public async getUserChats(): Promise<GroupMap> {
 		const groupMap: GroupMap = {};
 
 		const dialogs = await this.getDialogs();
@@ -29,11 +22,13 @@ export class TelegramParser extends TelegramClient implements TelegramParserT {
 				/**
 				 * @TODO - Fix for regular groups.
 				 * Currently only works with Api.Channel (i.e. large groups)
-				 * 
- 				if (entity instanceof Api.Chat) {
+				 * !!! For some reason gives incorrect group id
+				 *
+				 *
+				if (entity instanceof Api.Chat) {
 					groupMap[entity.title] = entity.id.toString();
-				}  
-				*/
+				} */
+
 				if (entity instanceof Api.Channel) {
 					const groupId = `'-100${entity.id.toString()}`;
 					groupMap[entity.title] = groupId;

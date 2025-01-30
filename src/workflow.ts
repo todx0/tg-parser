@@ -1,5 +1,5 @@
 import type { Api } from 'telegram';
-import type { TrendArray, CommandHandlers, DatabaseObject, ParsedCommand, DailyWords, GroupName } from 'src/types';
+import type { TrendArray, CommandHandlers, ParsedCommand } from 'src/types';
 import { filteredSet } from 'src/utils/filters';
 import {
 	getMessageTextFromEvent,
@@ -12,6 +12,7 @@ import {
 	filterTrends,
 	convertMessagesToDailyWords,
 	getTimestampMinusNDays,
+	generateChartHtml,
 } from 'src/utils/utils';
 import { trendManager, telegramParser, databaseService } from 'src/config';
 import { unlink } from 'node:fs/promises';
@@ -77,7 +78,11 @@ const commandHandlers: CommandHandlers = {
 	graph: async (params: string[], chatId: string) => {
 		const [parsedChatId] = params;
 		const wordTrendsFromDatabase = databaseService.getWordTrendsByGroupId(parsedChatId);
-		const filepath = await generateChartImage(wordTrendsFromDatabase);
+		const groupName = await telegramParser.getGroupName(parsedChatId);
+		if (!groupName) return null;
+
+		const chartHtml = await generateChartHtml(wordTrendsFromDatabase, groupName);
+		const filepath = await generateChartImage(chartHtml);
 		await telegramParser.sendFile(chatId, { file: filepath });
 		await unlink(filepath);
 
@@ -97,15 +102,16 @@ const commandHandlers: CommandHandlers = {
 	},
 };
 
-export async function handleCommand(message: string, chatId: string): Promise<void> {
+export async function handleCommand(message: string, chatId: string): Promise<boolean> {
 	const parsed = parseCommand(message);
-	if (!parsed) return;
+	if (!parsed) return false;
 
 	const handler = commandHandlers[parsed.command];
 	if (handler) {
 		await handler(parsed.params, chatId);
+		return true;
 	}
-	return;
+	return false;
 }
 
 export function parseCommand(message: string): ParsedCommand | null {
@@ -119,7 +125,8 @@ export async function botWorkflow(event: Api.TypeUpdate): Promise<void> {
 	const chatId = getChatId(event);
 	if (!message || !chatId) return;
 
-	await handleCommand(message, chatId);
+	const commandResult = await handleCommand(message, chatId);
+	if (commandResult) return;
 
 	const words = parseMessageToWordsArray(message, filteredSet);
 	if (!words) return;

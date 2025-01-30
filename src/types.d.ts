@@ -1,3 +1,4 @@
+import type { TelegramClient } from 'telegram';
 // ======================
 // Core Types
 // ======================
@@ -24,6 +25,16 @@ export type GroupName = string;
 // Trends Module
 // ======================
 
+export interface ITrendManager {
+	updateTrends(groupId: GroupId, words: Word[]): Promise<void>;
+	getTrends(groupId: GroupId): Promise<Trend | null>;
+	getTrendingWords(groupId: GroupId): Promise<string[] | null>;
+	applyDecay(): Promise<void>;
+	filterTrends(trends: Trend): Trend;
+	startDecayScheduler(): NodeJS.Timer;
+	close(): Promise<void>;
+}
+
 export type Trend = Map<Word, Count>;
 export type GroupTrends = Map<GroupId, Trend>;
 export type TrendArray = [Word, Count];
@@ -38,8 +49,7 @@ export interface SerializedTrends {
 // Telegram Parser Module
 // ======================
 
-export interface TelegramParserT extends TelegramClient {
-	sendMessageTo(groupId: GroupId, message: string): Promise<void>;
+export interface ITelegramParser extends TelegramClient {
 	getGroupName(chatId: Api.TypeEntityLike): Promise<string | null>;
 	getUserChats(): Promise<GroupMap>;
 }
@@ -71,12 +81,17 @@ export type FilteredSet = Set<Word>;
 // Database Module
 // ======================
 
-export interface IDBRepo {
-	insertGroup(groupId: GroupId, groupName: GroupName): void;
-	insertTimestamp(timestamp: Timestamp): void;
-	getTimestampId(timestamp: Timestamp): number;
-	insertWordTrend(groupId: GroupId, timestampId: number, word: Word, count: Count): void;
+export interface IDatabaseService {
+	addDailyWordsToDB(groupId: string, groupName: GroupName, dailyWords: DailyWords): void;
 	getWordTrendsByGroupId(groupId: GroupId): FormattedRow[];
+}
+
+export interface IDatabseInitializer {
+	init(): Database;
+}
+
+export interface IRepository {
+	insertObjectToDB(data: DatabaseObject): void;
 }
 
 export interface DatabaseObject {
@@ -100,6 +115,7 @@ export type TrendRow = {
 	word: Word;
 	count: Count;
 };
+
 //type FormattedRow = Record<Timestamp, WordMap>;
 export interface FormattedRow {
 	timestamp: Timestamp;
