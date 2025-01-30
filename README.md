@@ -37,7 +37,7 @@ bun install
 - Generate SESSION key [Learn how](https://gram.js.org/getting-started/authorization) or run `bun session.js`
 
 ### (Optional)
-- Add necessary word filters to filter.txt
+- Add necessary word filters to `filter.txt`
 
 ## Usage
 
