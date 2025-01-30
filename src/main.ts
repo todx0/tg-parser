@@ -1,10 +1,7 @@
 import { botWorkflow } from 'src/workflow';
-import { telegramParser, trendManager } from 'src/config';
-
-let scheduler: NodeJS.Timer;
+import { telegramParser } from 'src/config';
 
 (async () => {
-	scheduler = trendManager.startDecayScheduler();
 	await telegramParser.connect();
 	telegramParser.addEventHandler(botWorkflow);
 })();

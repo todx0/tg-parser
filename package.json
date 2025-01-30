@@ -1,6 +1,5 @@
 {
 	"name": "parser",
-	"type": "module",
 	"scripts": {
 		"start": "bun run src/main.ts"
 	},
@@ -11,7 +10,6 @@
 	},
 	"dependencies": {
 		"telegram": "^2.26.16",
-		"ioredis": "^5.4.2",
 		"node-html-to-image": "^5.0.0"
 	}
 }
