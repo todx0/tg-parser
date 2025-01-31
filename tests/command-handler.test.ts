@@ -7,7 +7,7 @@ import { DatabaseService } from 'src/db/database-service';
 import { unlink } from 'node:fs/promises';
 import type { ICommandHandler, IDatabaseService, ITelegramParser } from 'src/types';
 
-describe('CommandHandler', async () => {
+describe('Command Handler Unit', async () => {
 	let commandHandler: ICommandHandler;
 	let telegramParser: ITelegramParser;
 	let databaseService: IDatabaseService;
