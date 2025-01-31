@@ -1,5 +1,5 @@
 import type { TrendArray, GroupId, ITelegramParser, ICommandHandler, IDatabaseService, CommandMapping } from 'src/types';
-import { filteredSet } from 'src/utils/filters';
+import { createFilteredSet } from 'src/utils/filters';
 import {
 	parseMessageToWordsArray,
 	generateWordsImage,
@@ -12,6 +12,7 @@ import {
 	generateChartHtml,
 } from 'src/utils/utils';
 import { unlink } from 'node:fs/promises';
+import type { Api } from 'telegram';
 
 export class CommandHandler implements ICommandHandler {
 	constructor(
@@ -48,6 +49,7 @@ export class CommandHandler implements ICommandHandler {
 
 		const groupName = await this.telegramParser.getGroupName(parsedChatId);
 		const messages = await this.telegramParser.getMessages(parsedChatId, { limit: Number(limit) });
+		const filteredSet = await createFilteredSet();
 		const nonEmptyFilteredMessages = messages.flatMap((message) => parseMessageToWordsArray(message.message, filteredSet) as string[]);
 		const trends = getMapFromWords(nonEmptyFilteredMessages);
 
@@ -66,7 +68,6 @@ export class CommandHandler implements ICommandHandler {
 
 	private async scanDays(params: string[], chatId: GroupId) {
 		const [parsedChatId, days] = params;
-
 		if (!parsedChatId || !days) throw Error('Please provide valid chat id and specify amount of days.');
 
 		const groupName = await this.telegramParser.getGroupName(parsedChatId);
@@ -81,7 +82,7 @@ export class CommandHandler implements ICommandHandler {
 			waitTime: 5,
 		});
 
-		const dailyWords = convertMessagesToDailyWords(messages);
+		const dailyWords = await convertMessagesToDailyWords(messages);
 		this.databaseService.addDailyWordsToDB(parsedChatId, groupName, dailyWords);
 
 		await this.telegramParser.sendMessage(chatId, { message: 'Finished. Run /graph {groupId} to see results.' });

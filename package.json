@@ -9,7 +9,7 @@
 		"bun-types": "^1.1.43"
 	},
 	"dependencies": {
-		"telegram": "^2.26.16",
-		"node-html-to-image": "^5.0.0"
+		"node-html-to-image": "^5.0.0",
+		"telegram": "^2.26.16"
 	}
 }

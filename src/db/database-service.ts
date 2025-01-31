@@ -47,7 +47,6 @@ export class DatabaseService implements IDatabaseService {
 
 		try {
 			const rows = this.db.prepare(query).all(groupId) as TrendRow[];
-
 			return Object.values(
 				rows.reduce<Record<string, FormattedRow>>((acc, { timestamp, word, count }) => {
 					if (!acc[timestamp]) {

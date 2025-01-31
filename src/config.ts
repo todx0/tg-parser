@@ -26,4 +26,7 @@ const db = new Database(config.DB_NAME, { create: true });
 export const databaseService = new DatabaseService(db);
 
 // Commands
-export const commandHandler = new CommandHandler(telegramParser, databaseService);
+export const createCommandHandler = async () => {
+	const { CommandHandler } = await import('src/command-handler');
+	return new CommandHandler(telegramParser, databaseService);
+};

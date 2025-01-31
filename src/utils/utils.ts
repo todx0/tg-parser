@@ -2,7 +2,7 @@ import type { Api } from 'telegram';
 import type { FormattedRow, TrendArray, Word, Trend, DailyWords, GroupName } from 'src/types';
 import nodeHtmlToImage from 'node-html-to-image';
 import { writeFile, readFile } from 'node:fs/promises';
-import { filteredSet } from 'src/utils/filters';
+import { createFilteredSet } from 'src/utils/filters';
 
 export function getMessageTextFromEvent(event: Api.TypeUpdate): string | undefined {
 	if (event.className === 'UpdateNewChannelMessage') {
@@ -127,10 +127,12 @@ export function getMapFromWords(words: Word[]): Trend {
 }
 
 export function filterTrends(trends: Trend): Trend {
+	// HARDCODED VALUE 3!!!
 	return new Map([...trends].filter(([, value]) => value > 3).sort(([, valueA], [, valueB]) => valueB - valueA));
 }
 
-export function convertMessagesToDailyWords(messages: Api.Message[]): DailyWords {
+export async function convertMessagesToDailyWords(messages: Api.Message[]): Promise<DailyWords> {
+	const filteredSet = await createFilteredSet();
 	const dailyWords = messages
 		.map((message) => ({ date: formatTimestamp(message.date), words: parseMessageToWordsArray(message.message, filteredSet) }))
 		.filter((message) => message.words.length > 1)
@@ -147,7 +149,20 @@ export function convertMessagesToDailyWords(messages: Api.Message[]): DailyWords
 		);
 
 	const dailyWordsArr = Object.values(dailyWords);
-	const dailyWordsMapped = dailyWordsArr.map((o) => ({ date: o.date, words: Array.from(filterTrends(getMapFromWords(o.words))) }));
+
+	//const dailyWordsMapped = dailyWordsArr.map((o) => ({ date: o.date, words: Array.from(filterTrends(getMapFromWords(o.words))) }));
+	const dailyWordsMapped = dailyWordsArr.map((o) => {
+		const date = o.date;
+		const words = o.words;
+		const wordsMap = getMapFromWords(words);
+		const filteredTrends = filterTrends(wordsMap);
+		const filteredTrendsArray = Array.from(filteredTrends);
+		return {
+			date: date,
+			words: filteredTrendsArray,
+		};
+	});
+
 	return dailyWordsMapped;
 }
 
