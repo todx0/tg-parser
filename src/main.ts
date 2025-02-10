@@ -1,7 +1,7 @@
 import { botWorkflow } from 'src/workflow';
-import { telegramParser } from 'src/config';
+import { tgClient } from 'src/config';
 
 (async () => {
-	await telegramParser.connect();
-	telegramParser.addEventHandler(botWorkflow);
+	await tgClient.connect();
+	tgClient.addEventHandler(botWorkflow);
 })();

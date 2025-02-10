@@ -2,15 +2,18 @@
 
 ## Overview
 
-This repository serves no real purpose and is done purely to study about Telegram API
+This repository serves no real purpose and is done purely for learning purposes to study Telegram API
 and what user information can be scrapped from public chats.
 
 ## Features
+
+### All messages are sent by the user to the chat where command is entered.
 
 - **Get user's chats names mapped to its id**: `/map`
 - **Analyze messages over a specific number of days**: `/scan_days {chatId} {days}`
 - **Analyze a specific number of messages**: `/scan_limit {chatId} {limit}`
 - **Generate word trend graphs**: `/graph {chatId}`
+- **Exports text/photos from group's sub-chats (topics) as HTML** `/topic_replies {chatId} {topicId}`
 
 ## Installation
 
@@ -65,9 +68,17 @@ Scans the last `{limit}` messages from `{chatId}` and generates a word frequency
 
 Required after `scan_days` command. Generates a trend graph based on stored word frequency data for `{chatId}` and sends it as an image.
 
+## `/topics {chatId}`
+
+Returns a JSON object of topic name and id from group chat that has topics (sub-chats)
+
+## `/topic_replies {chatId} {topicId} {limit}`
+
+Returns a HTML file with text/photo messages from a selected topic.
+
 ## Dependencies
 
 - [**Bun**](https://bun.sh/) – Runtime
 - [**Telegram**](https://www.npmjs.com/package/telegram) – Telegram API integration
-- [**node-html-to-image**](https://www.npmjs.com/package/node-html-to-image) – Generates word trend images from HTML tables
+- [**node-html-to-image**](https://www.npmjs.com/package/node-html-to-image) – HTML to Image converter
 - [**@biomejs/biome**](https://www.npmjs.com/package/@biomejs/biome) – Linting and formatting

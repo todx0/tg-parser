@@ -5,3 +5,6 @@ db.ts
 database.sqlite
 dump.rdb
 *.sqlite
+media/*
+test*
+/*.html

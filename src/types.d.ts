@@ -17,10 +17,18 @@ export type FilteredSet = Set<Word>;
 // Telegram Parser Module
 // ======================
 export interface ITelegramParser extends TelegramClient {
-	getGroupName(chatId: Api.TypeEntityLike): Promise<string | null>;
+	getGroupName(chatId: Api.TypeEntityLike): Promise<GroupName | null>;
 	getUserChats(): Promise<GroupMap>;
+	getTopics(chatId: Api.TypeEntityLike): Promise<GroupMap>;
+	getMessagesFromTopic(chatId: Api.TypeEntityLike, topicId: string | number, limit?: number | string);
 }
 
+export interface MessageForTemplate {
+	id: number;
+	name: string;
+	media?: string;
+	text?: string;
+}
 // ======================
 // Command Handler Module
 // ======================
@@ -29,6 +37,14 @@ export interface ICommandHandler {
 }
 export type CommandMapping = Record<string, () => Promise<void>>;
 export type CommandHandler = (params: string[], chatId: GroupId) => Promise<null>;
+
+export interface ICommandHandler {
+	handleCommand(message: string, chatId: GroupId): Promise<void>;
+}
+
+export interface ICommand {
+	execute(params: string[], chatId: GroupId): Promise<void>;
+}
 
 // ======================
 // Database Module

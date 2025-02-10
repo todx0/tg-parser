@@ -14,7 +14,7 @@ export class Repository implements IRepository {
 	private insertGroup(groupId: GroupId, groupName: GroupName): void {
 		this.db.run('INSERT OR IGNORE INTO groups (id, name) VALUES (?, ?)', [groupId, groupName]);
 	}
-
+	
 	private insertTimestamp(timestamp: Timestamp): void {
 		this.db.run('INSERT OR IGNORE INTO timestamps (timestamp) VALUES (?)', [timestamp]);
 	}

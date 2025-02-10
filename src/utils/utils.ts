@@ -67,6 +67,42 @@ export async function generateChartImage(htmlContent: string) {
 	return filepath;
 }
 
+export async function generateMessagesHtml(title: string, data: Array<{ name: string; text?: string; media?: string }>): Promise<string> {
+	const htmlTemplate = await readFile('src/html/thread-chat-template.html', 'utf8');
+
+	const messagesHTML = await Promise.all(
+		data.map(async (item) => {
+			let mediaHTML = '';
+			if (item.media) {
+				try {
+					const file = Bun.file(item.media);
+					if (await file.exists()) {
+						const base64Image = Buffer.from(await file.arrayBuffer()).toString('base64');
+						mediaHTML = `<img src="data:image/jpeg;base64,${base64Image}" alt="User media" class="media-image">`;
+					} else {
+						mediaHTML = '<p>Media file not found.</p>';
+					}
+				} catch (error) {
+					console.error(`Error reading media file: ${item.media}`, error);
+					mediaHTML = '<p>Error loading media.</p>';
+				}
+			}
+
+			const textHTML = item.text ? `<p>${item.text}</p>` : '';
+
+			return `
+				<div class="user-message">
+					<strong>${item.name}:</strong>
+					${textHTML}
+					${mediaHTML}
+				</div>`;
+		}),
+	);
+	const htmlContent = htmlTemplate.replace('{{title}}', title).replace('{{messages}}', messagesHTML.join(''));
+
+	return htmlContent;
+}
+
 export async function generateChartHtml(formattedResult: FormattedRow[], groupName: GroupName): Promise<string> {
 	const htmlTemplate = await readFile('src/html/chart-template.html', 'utf8');
 

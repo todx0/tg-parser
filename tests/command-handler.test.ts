@@ -1,7 +1,7 @@
 //@ts-nocheck
 
 import { expect, test, mock, describe, beforeAll, afterAll } from 'bun:test';
-import { CommandHandler } from 'src/command-handler';
+import { CommandHandler } from '@src/commands/command-handler';
 import { Database } from 'bun:sqlite';
 import { DatabaseService } from 'src/db/database-service';
 import { unlink } from 'node:fs/promises';

@@ -9,8 +9,4 @@ export async function botWorkflow(event: Api.TypeUpdate): Promise<void> {
 
 	const commandHandler = await createCommandHandler();
 	await commandHandler.handleCommand(message, chatId);
-
-	/**
-	 * @TODO Parse comments from news groups (microblog)
-	 */
 }

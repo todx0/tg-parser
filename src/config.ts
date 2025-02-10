@@ -1,7 +1,6 @@
 import { StringSession } from 'telegram/sessions/index';
-import { TelegramParser } from 'src/telegram-parser';
+import { TG } from '@src/tg/telegram-parser';
 import { DatabaseService } from 'src/db/database-service';
-import { CommandHandler } from 'src/command-handler';
 import { Database } from 'bun:sqlite';
 import { getEnvVariable } from 'src/utils/utils';
 import type { AppConfig } from 'src/types';
@@ -17,7 +16,7 @@ export const config: AppConfig = {
 export const filterFilePath = './filter.txt';
 
 // Telegram
-export const telegramParser = new TelegramParser(new StringSession(config.SESSION), +config.API_ID, config.API_HASH, {
+export const tgClient = new TG(new StringSession(config.SESSION), +config.API_ID, config.API_HASH, {
 	connectionRetries: 5,
 });
 
@@ -27,6 +26,7 @@ export const databaseService = new DatabaseService(db);
 
 // Commands
 export const createCommandHandler = async () => {
-	const { CommandHandler } = await import('src/command-handler');
-	return new CommandHandler(telegramParser, databaseService);
+	// why top level await is not working?
+	const { CommandHandler } = await import('@src/commands/command-handler');
+	return new CommandHandler(tgClient, databaseService);
 };
